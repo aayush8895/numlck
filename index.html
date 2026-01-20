@@ -34,7 +34,6 @@
             z-index: 1000;
         }
 
-        /* Updated Header Layout */
         .header-content {
             display: flex;
             justify-content: space-between;
@@ -48,7 +47,6 @@
             letter-spacing: -0.5px;
         }
 
-        /* Header Contact Button Styling */
         .btn-header {
             padding: 10px 20px;
             font-size: 14px;
@@ -297,11 +295,18 @@
             border-color: #1a1a1a;
         }
 
-        /* Captcha Center Alignment */
-        .captcha-wrapper {
+        /* CAPTCHA Visibility Styling */
+        #captcha-section {
+            display: none;
             margin-bottom: 20px;
-            display: flex;
             justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        #captcha-section.visible {
+            display: flex;
+            opacity: 1;
         }
 
         .contact-email {
@@ -336,29 +341,12 @@
         }
 
         @media (max-width: 768px) {
-            h1 {
-                font-size: 36px;
-            }
-
-            .subtext {
-                font-size: 18px;
-            }
-
-            .section-title {
-                font-size: 28px;
-            }
-
-            .hero {
-                padding: 60px 0 80px;
-            }
-
-            section {
-                padding: 60px 0;
-            }
-
-            .pricing-card {
-                padding: 32px 24px;
-            }
+            h1 { font-size: 36px; }
+            .subtext { font-size: 18px; }
+            .section-title { font-size: 28px; }
+            .hero { padding: 60px 0 80px; }
+            section { padding: 60px 0; }
+            .pricing-card { padding: 32px 24px; }
         }
     </style>
 </head>
@@ -497,7 +485,7 @@
                     <input type="text" id="business" name="business" required>
                 </div>
 
-                <div class="captcha-wrapper">
+                <div id="captcha-section">
                     <div class="cf-turnstile" data-sitekey="0x4AAAAAACNmyqCZxciS9tNk"></div>
                 </div>
 
@@ -517,6 +505,18 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztKilY2iTQmvVWEkZogwssmq8PdH-qCr0GzL0YDqu4xTgQG7OJUMDhz-L5EFaWVUun/exec';
         
+        // Show CAPTCHA when user interacts with form
+        const formInputs = document.querySelectorAll('.contact-form input');
+        const captchaSection = document.getElementById('captcha-section');
+
+        formInputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                if (!captchaSection.classList.contains('visible')) {
+                    captchaSection.classList.add('visible');
+                }
+            }, { once: true });
+        });
+
         document.querySelector('.contact-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -524,10 +524,10 @@
             const originalText = submitButton.textContent;
             
             // Get Turnstile Token
-            const turnstileResponse = document.querySelector('[name="cf-turnstile-response"]').value;
+            const turnstileResponse = document.querySelector('[name="cf-turnstile-response"]')?.value;
             
             if (!turnstileResponse) {
-                alert('Please complete the security check.');
+                alert('Please wait for the security check to complete.');
                 return;
             }
 
@@ -552,8 +552,9 @@
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    alert('Thank you for your interest! We will contact you soon.');
+                    alert('Thank you! We will contact you soon.');
                     this.reset();
+                    captchaSection.classList.remove('visible');
                     if (window.turnstile) turnstile.reset();
                 } else {
                     throw new Error(result.message);
@@ -568,7 +569,7 @@
             }
         });
 
-        // Smooth scrolling for anchor links
+        // Smooth scrolling for header button and other anchors
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
